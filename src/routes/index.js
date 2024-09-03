@@ -13,7 +13,7 @@ fs.readdirSync(routesDirectory).forEach((file) => {
 });
 
 // Import the cron jobs file to ensure it's executed
-// require('../Config/cronJobs'); 
+require('../Config/cronJobs'); 
 
 routes.use("/", (req, res) => {
   res.status(200).send("Server is running on develop");
