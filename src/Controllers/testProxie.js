@@ -1,43 +1,33 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
 const puppeteer = require('puppeteer');
 
 const testProxie = async (req, res) => {
 
-    console.log('test proxie');
+    const browser = await puppeteer.launch({
+        headless: true,
+        defaultViewport: { width: 1280, height: 800 },
+    });
 
-    // Define your SOCKS5 proxy details (without authentication)
-    const socksProxy = 'p-11787.sp4.ovh:11004';
+    const page = await browser.newPage();
 
-    // // Set up Chrome options to use the SOCKS5 proxy
-    // let options = new chrome.Options();
-    // options.addArguments(`--proxy-server=socks5://${socksProxy}`);
-    // options.addArguments('--ignore-certificate-errors');
-    // options.addArguments('--no-sandbox');
-    // options.addArguments('--disable-gpu');
-    // options.addArguments('--disable-dev-shm-usage'); // Important for low memory systems
-    // options.addArguments('--disable-software-rasterizer');
-    // // options.addArguments('--headless'); // Optional: Run in headless mode
+    await page.goto('https://www.olx.ua/d/uk/obyavlenie/claas-lexion-670-c750-IDUOatu.html', { waitUntil: 'networkidle2' });
 
-    // try {
-    //     // Initialize the WebDriver
-    //     let driver = await new Builder()
-    //         .forBrowser('chrome')
-    //         .setChromeOptions(options)
-    //         .build();
+    try {
+        // Click the "Show Phone" button
+        await page.waitForSelector('button[data-testid="show-phone"]', { timeout: 60000 });
+        await page.click('button[data-testid="show-phone"]');
 
-    //     // Navigate to the website
-    //     await driver.get('https://www.olx.ua/d/uk/obyavlenie/zernozbiralniy-kombayn-sampo-rosenlew-580-IDTeVyb.html');
+        // Wait for the phone number to be visible
+        await page.waitForSelector('a[data-testid="contact-phone"]', { timeout: 60000 });
+        const phoneNumber = await page.$eval('a[data-testid="contact-phone"]', el => el.textContent?.trim() || '');
 
-    //     // Print the page title to verify successful navigation
-    //     const title = await driver.getTitle();
-    //     console.log('Page title:', title);
+        res.json({ success: true, phoneNumber: phoneNumber });
 
-    //     // Quit the driver
-    //     await driver.quit();
-    // } catch (error) {
-    //     console.error('Error:', error.message);
-    // }
+    } catch (error) {
+        console.error(`Failed to fetch details for ${listing.link}:`, error.message);
+    } finally {
+        await browser.close();
+    }
+
 }
 
 module.exports = { testProxie }
