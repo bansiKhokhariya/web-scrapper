@@ -118,6 +118,16 @@ const olxScrapeData = async (req, res) => {
                 // await fetchListingDetails(post);
             }
         }
+
+        if (newPosts.length > 0) {
+            // Send Telegram message with the new posts
+            const message = `New Olx posts added:\n${newPosts.map(post => `- ${post.title}`).join('\n')}`;
+            await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                chat_id: process.env.TELEGRAM_CHAT_ID,
+                text: message,
+            });
+        }
+
         res.json({ success: true, listings: newPosts });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
