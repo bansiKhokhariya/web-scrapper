@@ -1,5 +1,5 @@
-const cron = require('node-cron');
 const clientPromise = require("../Config/mongodb");
+const puppeteer = require('puppeteer');
 
 async function fetchListingDetails(listing) {
 

@@ -15,9 +15,8 @@ cron.schedule('30 17 * * *', async () => {
 //     await olxScrapeData();
 // });
 
-
 // Schedule the cron job to run every 10 minutes
-// cron.schedule('*/10 * * * *', async () => {
-//     console.log('Running updateMissingPhoneNumbers every 10 minutes');
-//     await updateMissingPhoneNumbers();
-// });
+cron.schedule('*/20 * * * *', async () => {
+    console.log('Running updateMissingPhoneNumbers every 20 minutes');
+    await updateMissingPhoneNumbers();
+});

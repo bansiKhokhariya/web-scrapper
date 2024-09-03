@@ -1,6 +1,11 @@
 const puppeteer = require('puppeteer');
 
 const testProxie = async (req, res) => {
+    const url = req.query.url;
+
+    if (!url) {
+        return res.status(400).json({ success: false, error: 'URL is required' });
+    }
 
     const browser = await puppeteer.launch({
         headless: true,
@@ -9,7 +14,7 @@ const testProxie = async (req, res) => {
 
     const page = await browser.newPage();
 
-    await page.goto('https://www.olx.ua/d/uk/obyavlenie/claas-lexion-670-c750-IDUOatu.html', { waitUntil: 'networkidle2' });
+    await page.goto(url, { waitUntil: 'networkidle2' });
 
     try {
         // Click the "Show Phone" button
@@ -23,11 +28,11 @@ const testProxie = async (req, res) => {
         res.json({ success: true, phoneNumber: phoneNumber });
 
     } catch (error) {
-        console.error(`Failed to fetch details for ${listing.link}:`, error.message);
+        console.error(`Failed to fetch details for ${url}:`, error.message);
+        res.status(500).json({ success: false, error: 'Failed to fetch phone number' });
     } finally {
         await browser.close();
     }
-
 }
 
-module.exports = { testProxie }
+module.exports = { testProxie };
