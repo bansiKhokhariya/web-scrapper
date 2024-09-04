@@ -6,7 +6,7 @@ const { updateMissingPhoneNumbers } = require('../Controllers/fetchNumberControl
 
 
 // Schedule the updateMissingPhoneNumbers to run every minute
-cron.schedule('* * * * *', async () => {
+cron.schedule('52 10 * * *', async () => {
     console.log('Running test cron every minute');
     await testCronAPI();
 });
