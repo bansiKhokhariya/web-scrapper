@@ -52,7 +52,11 @@ const finnScrapeData = async (req, res) => {
 };
 
 const testCronAPI = async (req, res) => {
-  console.log('Hello bansi cron Run');
+  const message = `test cron run`;
+  await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    chat_id: process.env.TELEGRAM_CHAT_ID,
+    text: message,
+  });
 };
 
-module.exports = { finnScrapeData , testCronAPI};
+module.exports = { finnScrapeData, testCronAPI };
