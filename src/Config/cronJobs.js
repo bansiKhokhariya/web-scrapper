@@ -4,7 +4,7 @@ const { olxScrapeData } = require('../Controllers/OlxController');
 const { updateMissingPhoneNumbers } = require('../Controllers/fetchNumberController'); // Adjust the path as needed
 
 // Schedule finnScrapeData to run every 5 minutes    
-cron.schedule('30 17 * * *', async () => {
+cron.schedule('40 10 * * *', async () => {
     console.log('Running FinnDataScrapper every day 5:00 PM ');
     await finnScrapeData();
 });
@@ -16,7 +16,7 @@ cron.schedule('30 17 * * *', async () => {
 // });
 
 // Schedule the cron job to run every 10 minutes
-cron.schedule('25 10 * * *', async () => {
+cron.schedule('*/10 * * * *', async () => {
     console.log('Running updateMissingPhoneNumbers every 20 minutes');
     await updateMissingPhoneNumbers();
 });
