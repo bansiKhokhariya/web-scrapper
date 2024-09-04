@@ -1,5 +1,6 @@
 const clientPromise = require("../Config/mongodb");
 const puppeteer = require('puppeteer');
+const axios = require("axios");
 
 async function fetchListingDetails(listing) {
 
@@ -34,9 +35,20 @@ async function fetchListingDetails(listing) {
             { link: listing.link },
             { $set: { phoneNumber } }
         );
-        
+
+        const message = `Phone number updated: ${listing.title} ====================> ${phoneNumber} `;
+        await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            chat_id: process.env.TELEGRAM_CHAT_ID,
+            text: message,
+        });
+
         console.log('Phone number updated:', listing.title, '=================>' + phoneNumber);
     } catch (error) {
+        const message = `Failed to fetch details for ${listing.title}`;
+        await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            chat_id: process.env.TELEGRAM_CHAT_ID,
+            text: message,
+        });
         console.error(`Failed to fetch details for ${listing.link}:`, error.message);
     } finally {
         await browser.close();
