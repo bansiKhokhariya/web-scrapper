@@ -3,8 +3,6 @@ const puppeteer = require('puppeteer');
 const axios = require("axios");
 
 async function fetchListingDetails(listing) {
-
-    // const socksProxy = 'socks5://a6d8hu_3:a6d8hu_3@p-11787.sp4.ovh:11004';
     const browser = await puppeteer.launch({
         headless: true,
         defaultViewport: { width: 1280, height: 800 },
@@ -12,37 +10,56 @@ async function fetchListingDetails(listing) {
 
     const page = await browser.newPage();
 
-    await page.goto(listing.link, { waitUntil: 'networkidle2' });
-
     try {
-        // Click the "Show Phone" button
-        await page.waitForSelector('button[data-testid="show-phone"]', { timeout: 60000 });
-        await page.click('button[data-testid="show-phone"]');
+        await page.goto(listing.link, { waitUntil: 'networkidle2' });
 
-        // Wait for the phone number to be visible
-        await page.waitForSelector('a[data-testid="contact-phone"]', { timeout: 60000 });
-        const phoneNumber = await page.$eval('a[data-testid="contact-phone"]', el => el.textContent?.trim() || '');
+        // Attempt to find the "Show Phone" button
+        const showPhoneButton = await page.$('button[data-testid="show-phone"]');
 
-        // Update the listing object with the phone number
-        listing.phoneNumber = phoneNumber;
+        if (showPhoneButton) {
+            // Click the "Show Phone" button
+            await showPhoneButton.click();
 
-        // Connect to MongoDB and update the document
-        const client = await clientPromise;
-        const db = client.db('scrapper');
-        const collection = db.collection('olx_new_Data');
+            // Wait for the phone number to be visible
+            await page.waitForSelector('a[data-testid="contact-phone"]', { timeout: 60000 });
+            const phoneNumber = await page.$eval('a[data-testid="contact-phone"]', el => el.textContent?.trim() || '');
 
-        await collection.updateOne(
-            { link: listing.link },
-            { $set: { phoneNumber } }
-        );
+            // Update the listing object with the phone number
+            listing.phoneNumber = phoneNumber;
 
-        const message = `Phone number updated: ${listing.title} ====================> ${phoneNumber} `;
-        await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-            chat_id: process.env.TELEGRAM_CHAT_ID,
-            text: message,
-        });
+            // Connect to MongoDB and update the document with the phone number
+            const client = await clientPromise;
+            const db = client.db('scrapper');
+            const collection = db.collection('olx_new_Data');
 
-        console.log('Phone number updated:', listing.title, '=================>' + phoneNumber);
+            await collection.updateOne(
+                { link: listing.link },
+                { $set: { phoneNumber } }
+            );
+
+            const message = `Phone number updated: ${listing.title} ====================> ${phoneNumber} `;
+            await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                chat_id: process.env.TELEGRAM_CHAT_ID,
+                text: message,
+            });
+
+            console.log('Phone number updated:', listing.title, '=================>' + phoneNumber);
+        } else {
+            // If the "Show Phone" button is not found, set phoneNumber to null
+            listing.phoneNumber = null;
+
+            // Connect to MongoDB and update the document with null phone number
+            const client = await clientPromise;
+            const db = client.db('scrapper');
+            const collection = db.collection('olx_new_Data');
+
+            await collection.updateOne(
+                { link: listing.link },
+                { $set: { phoneNumber: null } }
+            );
+
+            console.log('Phone number not found for:', listing.title, '=================>' + listing.phoneNumber);
+        }
     } catch (error) {
         const message = `Failed to fetch details for ${listing.title}`;
         await axios.post(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
